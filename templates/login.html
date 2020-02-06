@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>登录 - 论点论据标注</title>
+    <script src="https://cdn.bootcss.com/axios/0.19.0-beta.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <style>
+        .login {
+            width: 800px;
+            margin: 120px auto;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app">
+    <div class="login">
+        <el-card class="box-card">
+            <div slot="header" class="clearfix">
+                <span>登录</span>
+            </div>
+            <el-form :model="user" status-iconref="user" label-width="100px">
+                <el-form-item label="用户名" prop="username">
+                    <el-input type="text" v-model="user.username" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="密码" prop="password">
+                    <el-input type="password" v-model="user.password" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="login()">登录</el-button>
+                </el-form-item>
+            </el-form>
+        </el-card>
+    </div>
+</div>
+<script>
+    let vm = new Vue({
+        delimiters: ['<<', '>>'],
+        el: '#app',
+        data() {
+            return {
+                user: {
+                    username: "",
+                    password: ""
+                }
+            }
+        },
+        methods: {
+            login() {
+                if (this.user.username == '') {
+                    this.$message.error('请输入用户名')
+                } else if (this.user.password == '') {
+                    this.$message.error('请输入密码')
+                } else {
+                    const loading = this.$loading({
+                        lock: true,
+                        text: 'Login...',
+                        spinner: 'el-icon-loading',
+                        background: 'rgba(0, 0, 0, 0.7)'
+                    });
+                    let self = this;
+                    axios.post('/api/login', self.user)
+                        .then(function (response) {
+                            loading.close();
+                            if (response.data.code === 100) {
+                                localStorage.setItem('auth', JSON.stringify(response.data.data))
+                                window.location.href = "user"
+                            } else if (response.data.code === 200) {
+                                localStorage.setItem('auth', JSON.stringify(response.data.data))
+                                window.location.href = "index"
+                            } else {
+                                self.$message.error(response.data.msg);
+                                localStorage.removeItem('auth')
+                            }
+                        })
+                        .catch(function (error) {
+                            self.$message.error(error);
+                            loading.close();
+                        });
+                }
+            }
+        }
+    })
+</script>
+</body>
+
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>用户 - 论点论据标注</title>
+    <script src="https://cdn.bootcss.com/axios/0.19.0-beta.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <style>
+        .login {
+            width: 1000px;
+            margin: 100px auto;
+        }
+
+        .btn {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="login">
+            <el-card class="box-card">
+                <div class="btn">
+                    <el-button @click="logout">退出</el-button>
+                    <el-button @click="dialogAddUserVisible = true">添加用户</el-button>
+                </div>
+                <el-table border
+                    :data="users.filter(data => !search || data.name.toLowerCase().includes(search.toLowerCase()))"
+                    style="width: 100%">
+                    <el-table-column label="Date" prop="date">
+                    </el-table-column>
+                    <el-table-column label="Name" prop="username">
+                    </el-table-column>
+                    <el-table-column label="Role">
+                        <template slot-scope="scope">
+                            <el-tag v-if="scope.row.role == 3" type="success">PM</el-tag>
+                            <el-tag v-if="scope.row.role == 2" type="primary">检验员</el-tag>
+                            <el-tag v-if="scope.row.role == 1" type="info">标注员</el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="right">
+                        <template slot="header" slot-scope="scope">
+                            <el-input v-model="search" size="mini" placeholder="输入关键字搜索" />
+                        </template>
+                        <template slot-scope="scope">
+                            <!-- <el-button size="mini" @click="handleEdit(scope.$index, scope.row)">Edit</el-button> -->
+                            <el-button size="mini" type="danger" @click="handleDelete(scope.row._id)">
+                                删除
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-card>
+            <el-dialog title="添加用户" :visible.sync="dialogAddUserVisible">
+                <el-form :model="new_user" label-width="80px">
+                    <el-form-item label="用户名">
+                        <el-input v-model="new_user.username" autocomplete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="密码">
+                        <el-input v-model="new_user.password" autocomplete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="角色">
+                        <el-select v-model="new_user.role" placeholder="请选择用户角色">
+                            <el-option label="PM" value="3"></el-option>
+                            <el-option label="检验员" value="2"></el-option>
+                            <el-option label="标注员" value="1"></el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="dialogAddUserVisible = false">取 消</el-button>
+                    <el-button type="primary" @click="handleAdd">添 加</el-button>
+                </div>
+            </el-dialog>
+        </div>
+    </div>
+    <script>
+        let vm = new Vue({
+            delimiters: ['<<', '>>'],
+            el: '#app',
+            data() {
+                return {
+                    users: [],
+                    search: '',
+                    user: null,
+                    dialogAddUserVisible: false,
+                    new_user: {
+                        username: "",
+                        password: "",
+                        role: ""
+                    }
+                }
+            },
+            methods: {
+                logout() {
+                    localStorage.clear()
+                    window.location.href = "login"
+                },
+                handleEdit(index, row) {
+                    console.log(index, row);
+                },
+                handleDelete(_id) {
+                    let self = this
+                    const loading = this.$loading({
+                        lock: true,
+                        text: 'Delete...',
+                        spinner: 'el-icon-loading',
+                        background: 'rgba(0, 0, 0, 0.7)'
+                    });
+                    axios.delete('/api/user?_id=' + _id)
+                        .then(function (response) {
+                            loading.close();
+                            if (response.data.code === 200) {
+                                self.$message({
+                                    message: '删除成功',
+                                    type: 'success'
+                                })
+                                self.getData()
+                            } else {
+                                self.$message.error(response.data.msg);
+                            }
+                        })
+                        .catch(function (error) {
+                            self.$message.error(error);
+                            loading.close();
+                        });
+                },
+                handleAdd() {
+                    if (this.new_user.username == '') {
+                        this.$message.error('请输入用户名')
+                    } else if (this.new_user.password == '') {
+                        this.$message.error('请输入密码')
+                    } else if (this.new_user.role == '') {
+                        this.$message.error('请选择用户角色')
+                    } else {
+                        let self = this
+                        const loading = this.$loading({
+                            lock: true,
+                            text: 'Post...',
+                            spinner: 'el-icon-loading',
+                            background: 'rgba(0, 0, 0, 0.7)'
+                        });
+                        axios.post('/api/user', self.new_user)
+                            .then(function (response) {
+                                loading.close();
+                                if (response.data.code === 200) {
+                                    self.$message({
+                                        message: '添加成功',
+                                        type: 'success'
+                                    });
+                                    self.getData()
+                                    self.dialogAddUserVisible = false
+                                } else {
+                                    self.$message.error(response.data.msg);
+                                }
+                            })
+                            .catch(function (error) {
+                                self.$message.error(error);
+                                loading.close();
+                            });
+                    }
+                },
+                getData() {
+                    let self = this
+                    const loading = this.$loading({
+                        lock: true,
+                        text: 'Get...',
+                        spinner: 'el-icon-loading',
+                        background: 'rgba(0, 0, 0, 0.7)'
+                    });
+                    axios.get('/api/user')
+                        .then(function (response) {
+                            if (response.data.code === 200)
+                                self.users = self.jsonSort(response.data.data, 'role', true)
+                            else
+                                self.$message.error("网络错误");
+                            loading.close();
+                        })
+                        .catch(function (error) {
+                            self.$message.error(error);
+                            loading.close();
+                        })
+                },
+                jsonSort(array, field, reverse) {
+                    //数组长度小于2 或 没有指定排序字段 或 不是json格式数据
+                    if (array.length < 2 || !field || typeof array[0] !== "object") return array;
+                    //数字类型排序
+                    if (typeof array[0][field] === "number") {
+                        array.sort(function (x, y) { return x[field] - y[field] });
+                    }
+                    //字符串类型排序
+                    if (typeof array[0][field] === "string") {
+                        array.sort(function (x, y) { return x[field].localeCompare(y[field]) });
+                    }
+                    if (reverse) {
+                        array.reverse();
+                    }
+                    return array;
+                }
+            },
+            mounted() {
+                let user = localStorage.getItem('auth')
+                this.getData()
+                if (user) {
+                    this.user = user
+                } else {
+                    window.location.href = "login"
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

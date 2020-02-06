@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>检查 - 论点论据标注</title>
+    <script src="https://cdn.bootcss.com/axios/0.19.0-beta.1/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://cdn.bootcss.com/xlsx/0.15.1/xlsx.core.min.js"></script>
+    <style>
+        .list {
+            width: 1000px;
+            margin: 80px auto;
+        }
+
+        .btn {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="list">
+            <div class="btn">
+                <div>
+                    <el-button @click="logout">退出</el-button>
+                    <el-button @click="back">返回</el-button>
+                </div>
+                <div>
+                    <el-tag><< paper.title >></el-tag>
+                    <el-button @click="handler('pass')">通过</el-button>
+                    <el-button @click="handler('redo')">返工</el-button>
+                    <el-button @click="logout">更改</el-button>
+                    <el-button v-if="user.role == 3" type="primary" @click="handlerData">下载</el-button>
+                </div>
+            </div>
+            <el-card class="box-card">
+                <el-table :data="content" border style="width: 100%">
+                    <el-table-column prop="num" label="编号" width="80">
+                    </el-table-column>
+                    <el-table-column prop="text" label="文本">
+                    </el-table-column>
+                    <el-table-column prop="argument" label="论点" width="180">
+                    </el-table-column>
+                    <el-table-column prop="position" label="论点立场" width="80">
+                    </el-table-column>
+                    <el-table-column label="论据类型" width="180">
+                        <template slot-scope="scope">
+                            <el-card v-for="i in scope.row.type">
+                                <div>
+                                    <span v-for="j in i.p1">
+                                        << j>>
+                                    </span>
+                                </div>
+                                <div>
+                                    << i.p2>>
+                                </div>
+                            </el-card>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-card>
+        </div>
+    </div>
+    <script>
+        let vm = new Vue({
+            delimiters: ['<<', '>>'],
+            el: '#app',
+            data() {
+                return {
+                    user: {
+                        role: 1
+                    },
+                    paper: {
+                        title: ""
+                    },
+                    content: []
+                }
+            },
+            methods: {
+                handlerData() {
+                    let data1 = [['辩题', '文章编号', '论点', '论点立场', '论点句子编号']]
+                    let data2 = [['辩题', '文章编号', '论点', '论据类型', '论据句子编号']]
+                    this.content.forEach(line => {
+                        data1.push([this.title, this.num, line.argument, line.position, line.num])
+                        data2.push([this.title, this.num, line.argument])
+                        for (let i = 0; i < line.type.length; i++) {
+                            if (i == 0) {
+                                data2[data2.length - 1].push(line.type[i].p1.join(','))
+                                data2[data2.length - 1].push(line.type[i].p2)
+                            } else {
+                                if (line.type[i].p1.length == 0 && line.type[i].trim() == "") {
+
+                                } else {
+                                    if (this.fill) {
+                                        data2.push([this.title, this.num, line.argument, line.type[i].p1.join(','), line.type[i].p2])
+                                    } else {
+                                        data2.push(['', '', '', line.type[i].p1.join(','), line.type[i].p2])
+                                    }
+                                }
+                            }
+                        }
+                    })
+                    console.log(data1)
+                    console.log(data2)
+
+                    let num = this.paper.title.substring(0, this.paper.title.indexOf("."))
+
+                    let sheet1 = XLSX.utils.aoa_to_sheet(data1)
+                    let blob1 = this.sheet2blob(sheet1)
+                    this.openDownloadDialog(blob1, '论点标注' + num + '.xlsx')
+
+                    let sheet2 = XLSX.utils.aoa_to_sheet(data2)
+                    let blob2 = this.sheet2blob(sheet2)
+                    this.openDownloadDialog(blob2, '论据标注' + num + '.xlsx')
+                },
+                openDownloadDialog(url, saveName) {
+                    if (typeof url == 'object' && url instanceof Blob) {
+                        url = URL.createObjectURL(url); // 创建blob地址
+                    }
+                    var aLink = document.createElement('a');
+                    aLink.href = url;
+                    aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
+                    var event;
+                    if (window.MouseEvent) event = new MouseEvent('click');
+                    else {
+                        event = document.createEvent('MouseEvents');
+                        event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                    }
+                    aLink.dispatchEvent(event);
+                },
+                sheet2blob(sheet, sheetName) {
+                    sheetName = sheetName || 'sheet1';
+                    var workbook = {
+                        SheetNames: [sheetName],
+                        Sheets: {}
+                    };
+                    workbook.Sheets[sheetName] = sheet;
+                    // 生成excel的配置项
+                    var wopts = {
+                        bookType: 'xlsx', // 要生成的文件类型
+                        bookSST: false, // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
+                        type: 'binary'
+                    };
+                    var wbout = XLSX.write(workbook, wopts);
+                    var blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+                    // 字符串转ArrayBuffer
+                    function s2ab(s) {
+                        var buf = new ArrayBuffer(s.length);
+                        var view = new Uint8Array(buf);
+                        for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                        return buf;
+                    }
+                    return blob;
+                },
+                logout() {
+                    localStorage.clear()
+                    window.location.href = "login"
+                },
+                back() {
+                    window.location.href = "index"
+                },
+                handleEdit(_id) {
+                    window.location.href = 'tagging?_id=' + _id
+                },
+                handler(opera) {
+                    let self = this
+                    const loading = this.$loading({
+                        lock: true,
+                        text: 'Update paper ...',
+                        spinner: 'el-icon-loading',
+                        background: 'rgba(0, 0, 0, 0.7)'
+                    });
+                    axios.post('/api/select', {
+                        _id: self.paper._id,
+                        user_id: self.user._id,
+                        opera: opera
+                    })
+                        .then(function (response) {
+                            loading.close();
+                            if (response.data.code === 200) {
+                                window.location.href = 'index'
+                            } else {
+                                self.$message.error(response.data.msg);
+                            }
+                        })
+                        .catch(function (error) {
+                            self.$message.error(error);
+                            loading.close();
+                        });
+                },
+                getPaper(_id, user_id) {
+                    let self = this
+                    const loading = this.$loading({
+                        lock: true,
+                        text: 'Get paper ...',
+                        spinner: 'el-icon-loading',
+                        background: 'rgba(0, 0, 0, 0.7)'
+                    });
+                    axios.post('/api/select', {
+                        _id: _id,
+                        user_id: user_id,
+                        opera: 'inspect'
+                    })
+                        .then(function (response) {
+                            loading.close();
+                            if (response.data.code === 200) {
+                                self.paper = response.data.data
+                                self.content = response.data.data.content
+                                // response.data.data.content.forEach(line => {
+                                //     let tmp = line.split('\t')
+                                //     self.content.push({
+                                //         num: tmp[0],
+                                //         text: tmp[1],
+                                //         argument: tmp[2],
+                                //         position: tmp[3],
+                                //         type: tmp[4],
+                                //         type_nums: tmp[5],
+                                //     })
+                                // })
+                            } else {
+                                self.$message.error(response.data.msg);
+                                setTimeout(() => {
+                                    window.location.href = "index"
+                                }, 2000)
+                            }
+                        })
+                        .catch(function (error) {
+                            self.$message.error(error);
+                            loading.close();
+                        });
+                },
+            },
+            mounted() {
+                let auth = localStorage.getItem('auth')
+                if (auth) {
+                    let user = JSON.parse(auth)
+                    if (user.hasOwnProperty('role')) {
+                        this.user = user
+                        let query = window.location.search.substring(1);
+                        let vars = query.split("=")
+                        this.getPaper(vars[1], user._id)
+                    } else {
+                        localStorage.clear()
+                        window.location.href = "login"
+                    }
+                } else {
+                    localStorage.clear()
+                    window.location.href = "login"
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
