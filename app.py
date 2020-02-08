@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from bson.objectid import ObjectId
 import pymongo
@@ -112,8 +113,15 @@ def select():
     conn = pymongo.MongoClient(mongo)
     if form['opera'] == 'select':
         user = conn['paper']['user'].find_one({'_id': ObjectId(form['user_id'])})
-        paper = conn['paper']['paper'].find_one({'_id': ObjectId(form['_id'])})
-        if paper['status'] == 1 or int(user['role']) > 1:
+        tmp = conn['paper']['paper'].find_one({'status': {'$lt': 1}, 'u1': user['username']})
+        if tmp:
+            tmp['_id'] = str(tmp['_id'])
+            return jsonify({
+                'code': 401,
+                'msg': '有任务未完成,请继续标注...',
+                'data': tmp
+            })
+        if conn['paper']['paper'].find_one({'_id': ObjectId(form['_id']), 'status': 1}):
             conn['paper']['paper'].update_one({'_id': ObjectId(form['_id'])},
                                               {'$set': {'status': 0, 'u1': user['username']}})
             paper = conn['paper']['paper'].find_one({'_id': ObjectId(form['_id'])})
@@ -131,7 +139,8 @@ def select():
             })
     elif form['opera'] == 'save':
         conn['paper']['paper'].update_one({'_id': ObjectId(form['_id'])}, {
-            '$set': {'content': form['content'], 'date': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}})
+            '$set': {'content': form['content'], 'name': form['name'],
+                     'date': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}})
         return jsonify({
             'code': 200,
             'msg': '',
@@ -167,7 +176,7 @@ def select():
         })
     else:
         conn['paper']['paper'].update_one({'_id': ObjectId(form['_id'])},
-                                          {'$set': {'content': form['content'], 'status': 2,
+                                          {'$set': {'content': form['content'], 'name': form['name'], 'status': 2,
                                                     'date': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}})
         return jsonify({
             'code': 200,
@@ -230,7 +239,8 @@ def upload():
             'content': result,
             'status': 1,
             'u1': '',
-            'u2': ''
+            'u2': '',
+            'name': os.path.splitext(name)[0]
         })
         return jsonify({'code': '200'})
     elif request.method == 'DELETE':

@@ -2,9 +2,9 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
     <title>列表 - 论点论据标注</title>
     <script src="https://cdn.bootcss.com/axios/0.19.0-beta.1/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
@@ -17,345 +17,362 @@
         }
 
         .btn {
-            display: flex;
-            justify-content: flex-start;
             padding-bottom: 15px;
         }
     </style>
 </head>
 
 <body>
-    <div id="app">
-        <div class="list">
-            <div class="btn">
-                <el-button @click="logout">退出</el-button>
-            </div>
-            <el-tabs type="border-card">
-                <el-tab-pane v-if="user.role > 2" label="已检验标注">
-                    <el-table border
-                        :data="p3.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
-                        style="width: 100%">
-                        <el-table-column label="时间" prop="date">
-                        </el-table-column>
-                        <el-table-column label="辩题" prop="title">
-                        </el-table-column>
-                        <el-table-column label="状态" width="80">
-                            <template slot-scope="scope">
-                                <el-tag type="success">已检验</el-tag>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="标注员">
-                            <template slot-scope="scope">
-                                << scope.row.u1>>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="检查员">
-                            <template slot-scope="scope">
-                                << scope.row.u2>>
-                            </template>
-                        </el-table-column>
-                        <el-table-column align="right" width="290">
-                            <template slot="header" slot-scope="scope">
-                                <el-input v-model="search" size="mini" placeholder="输入关键字搜索" />
-                            </template>
-                            <template slot-scope="scope">
-                                <el-button size="mini" @click="handleEdit(scope.row._id)">标注</el-button>
-                                <el-button size="mini" type="primary" @click="handleInspect(scope.row._id)">检查
-                                </el-button>
-                                <el-button size="mini" type="success" @click="handleDownload(scope.row.content)">下载
-                                </el-button>
-                                <el-button v-if="user.role == 3" size="mini" type="danger"
-                                    @click="handleDelete(scope.row._id)">
-                                    删除
-                                </el-button>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </el-tab-pane>
-                <el-tab-pane v-if="user.role > 1" label="已标注">
-                    <el-table border
-                        :data="p2.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
-                        style="width: 100%">
-                        <el-table-column label="时间" prop="date">
-                        </el-table-column>
-                        <el-table-column label="辩题" prop="title">
-                        </el-table-column>
-                        <el-table-column label="状态" width="80">
-                            <template slot-scope="scope">
-                                <el-tag type="primary">已标注</el-tag>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="标注员">
-                            <template slot-scope="scope">
-                                << scope.row.u1>>
-                            </template>
-                        </el-table-column>
-                        <el-table-column align="right">
-                            <template slot="header" slot-scope="scope">
-                                <el-input v-model="search" size="mini" placeholder="输入关键字搜索" />
-                            </template>
-                            <template slot-scope="scope">
-                                <el-button size="mini" @click="handleEdit(scope.row._id)">标注</el-button>
-                                <el-button size="mini" type="primary" @click="handleInspect(scope.row._id)">检查
-                                </el-button>
-                                <el-button v-if="user.role == 3" size="mini" type="danger"
-                                    @click="handleDelete(scope.row._id)">
-                                    删除
-                                </el-button>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </el-tab-pane>
-                <el-tab-pane label="未标注">
-                    <el-upload v-if="user.role == 3" class="upload-demo" drag action="/api/upload" multiple
-                        :on-success="uploaded">
-                        <i class="el-icon-upload"></i>
-                        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                    </el-upload>
-                    <el-table border
-                        :data="p1.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
-                        style="width: 100%">
-                        <el-table-column label="时间" prop="date">
-                        </el-table-column>
-                        <el-table-column label="辩题" prop="title">
-                        </el-table-column>
-                        <el-table-column label="状态" width="80">
-                            <template slot-scope="scope">
-                                <el-tag type="info">未标注</el-tag>
-                            </template>
-                        </el-table-column>
-                        <el-table-column align="right">
-                            <template slot="header" slot-scope="scope">
-                                <el-input v-model="search" size="mini" placeholder="输入关键字搜索" />
-                            </template>
-                            <template slot-scope="scope">
-                                <el-button size="mini" @click="handleEdit(scope.row._id)">标注</el-button>
-                                <el-button v-if="user.role == 3" size="mini" type="danger"
-                                    @click="handleDelete(scope.row._id)">
-                                    删除
-                                </el-button>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </el-tab-pane>
-                <el-tab-pane label="我的标注">
-                    <el-table
+<div id="app">
+    <div class="list">
+        <div class="btn">
+            <el-button @click="logout">退出</el-button>
+            <br>
+            <br>
+            <el-button type="success" @click="downloadTable">下载已选择</el-button>
+        </div>
+        <el-tabs type="border-card">
+            <el-tab-pane v-if="user.role > 2" label="已检验标注">
+                <el-table border
+                          :data="p3.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
+                          style="width: 100%">
+                    <el-table-column label="下载" width="50">
+                        <template slot-scope="scope">
+                            <el-checkbox v-model="scope.row.select"></el-checkbox>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="时间" prop="date">
+                    </el-table-column>
+                    <el-table-column label="辩题" prop="title">
+                    </el-table-column>
+                    <el-table-column label="状态" width="80">
+                        <template slot-scope="scope">
+                            <el-tag type="success">已检验</el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="标注员">
+                        <template slot-scope="scope">
+                            << scope.row.u1>>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="检查员">
+                        <template slot-scope="scope">
+                            << scope.row.u2>>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="right" width="290">
+                        <template slot="header" slot-scope="scope">
+                            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"/>
+                        </template>
+                        <template slot-scope="scope">
+                            <el-button size="mini" @click="handleEdit(scope.row._id)">标注</el-button>
+                            <el-button size="mini" type="primary" @click="handleInspect(scope.row._id)">检查
+                            </el-button>
+                            <el-button size="mini" type="success" @click="handleDownload(scope.row.content)">下载
+                            </el-button>
+                            <el-button v-if="user.role == 3" size="mini" type="danger"
+                                       @click="handleDelete(scope.row._id)">
+                                删除
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-tab-pane>
+            <el-tab-pane v-if="user.role > 1" label="已标注">
+                <el-table border
+                          :data="p2.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
+                          style="width: 100%">
+                    <el-table-column label="时间" prop="date">
+                    </el-table-column>
+                    <el-table-column label="辩题" prop="title">
+                    </el-table-column>
+                    <el-table-column label="状态" width="80">
+                        <template slot-scope="scope">
+                            <el-tag type="primary">已标注</el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="标注员">
+                        <template slot-scope="scope">
+                            << scope.row.u1>>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="right">
+                        <template slot="header" slot-scope="scope">
+                            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"/>
+                        </template>
+                        <template slot-scope="scope">
+                            <el-button size="mini" @click="handleEdit(scope.row._id)">标注</el-button>
+                            <el-button size="mini" type="primary" @click="handleInspect(scope.row._id)">检查
+                            </el-button>
+                            <el-button v-if="user.role == 3" size="mini" type="danger"
+                                       @click="handleDelete(scope.row._id)">
+                                删除
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-tab-pane>
+            <el-tab-pane label="未标注">
+                <el-upload v-if="user.role == 3" class="upload-demo" drag action="/api/upload" multiple
+                           :on-success="uploaded">
+                    <i class="el-icon-upload"></i>
+                    <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                </el-upload>
+                <el-table border
+                          :data="p1.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
+                          style="width: 100%">
+                    <el-table-column label="时间" prop="date">
+                    </el-table-column>
+                    <el-table-column label="辩题" prop="title">
+                    </el-table-column>
+                    <el-table-column label="状态" width="80">
+                        <template slot-scope="scope">
+                            <el-tag type="info">未标注</el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="right">
+                        <template slot="header" slot-scope="scope">
+                            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"/>
+                        </template>
+                        <template slot-scope="scope">
+                            <el-button size="mini" @click="handleEdit(scope.row._id)">标注</el-button>
+                            <el-button v-if="user.role == 3" size="mini" type="danger"
+                                       @click="handleDelete(scope.row._id)">
+                                删除
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-tab-pane>
+            <el-tab-pane label="我的标注">
+                <el-table
                         :data="p0.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
                         style="width: 100%">
-                        <el-table-column label="时间" prop="date">
-                        </el-table-column>
-                        <el-table-column label="辩题" prop="title">
-                        </el-table-column>
-                        <el-table-column label="状态" width="80">
-                            <template slot-scope="scope">
-                                <el-tag v-if="scope.row.status == -2" type="success">合格</el-tag>
-                                <el-tag v-if="scope.row.status == 0" type="warning">未完成</el-tag>
-                                <el-tag v-if="scope.row.status == -1" type="danger">返工</el-tag>
-                            </template>
-                        </el-table-column>
-                        <el-table-column align="right">
-                            <template slot="header" slot-scope="scope">
-                                <el-input v-model="search" size="mini" placeholder="输入关键字搜索" />
-                            </template>
-                            <template slot-scope="scope">
-                                <el-button v-if="scope.row.status != -2" size="mini" @click="handleEdit(scope.row._id)">
-                                    标注</el-button>
-                                <el-button v-if="user.role == 3" size="mini" type="danger"
-                                    @click="handleDelete(scope.row._id)">
-                                    删除
-                                </el-button>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </el-tab-pane>
-            </el-tabs>
-        </div>
+                    <el-table-column label="时间" prop="date">
+                    </el-table-column>
+                    <el-table-column label="辩题" prop="title">
+                    </el-table-column>
+                    <el-table-column label="状态" width="80">
+                        <template slot-scope="scope">
+                            <el-tag v-if="scope.row.status == -2" type="success">合格</el-tag>
+                            <el-tag v-if="scope.row.status == 0" type="warning">未完成</el-tag>
+                            <el-tag v-if="scope.row.status == -1" type="danger">返工</el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="right">
+                        <template slot="header" slot-scope="scope">
+                            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"/>
+                        </template>
+                        <template slot-scope="scope">
+                            <el-button v-if="scope.row.status != -2" size="mini" @click="handleEdit(scope.row._id)">
+                                标注
+                            </el-button>
+                            <el-button v-if="user.role == 3" size="mini" type="danger"
+                                       @click="handleDelete(scope.row._id)">
+                                删除
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-tab-pane>
+        </el-tabs>
     </div>
-    <script>
-        let vm = new Vue({
-            delimiters: ['<<', '>>'],
-            el: '#app',
-            data() {
-                return {
-                    user: {
-                        role: 1
-                    },
-                    p0: [],
-                    p1: [],
-                    p2: [],
-                    p3: [],
-                    search: ''
-                }
+</div>
+<script>
+    let vm = new Vue({
+        delimiters: ['<<', '>>'],
+        el: '#app',
+        data() {
+            return {
+                user: {
+                    role: 1
+                },
+                p0: [],
+                p1: [],
+                p2: [],
+                p3: [],
+                search: ''
+            }
+        },
+        methods: {
+            downloadTable() {
+                this.p3.forEach(paper => {
+                    if(paper.select){
+                        this.handlerData(paper.content)
+                    }
+                })
             },
-            methods: {
-                handlerData(content) {
-                    let data1 = [['辩题', '文章编号', '论点', '论点立场', '论点句子编号']]
-                    let data2 = [['辩题', '文章编号', '论点', '论据类型', '论据句子编号']]
-                    content.forEach(line => {
-                        data1.push([this.title, this.num, line.argument, line.position, line.num])
-                        data2.push([this.title, this.num, line.argument])
-                        for (let i = 0; i < line.type.length; i++) {
-                            if (i == 0) {
-                                data2[data2.length - 1].push(line.type[i].p1.join(','))
-                                data2[data2.length - 1].push(line.type[i].p2)
-                            } else {
-                                if (line.type[i].p1.length == 0 && line.type[i].trim() == "") {
+            handlerData(content) {
+                let data1 = [['辩题', '文章编号', '论点', '论点立场', '论点句子编号']]
+                let data2 = [['辩题', '文章编号', '论点', '论据类型', '论据句子编号']]
+                content.forEach(line => {
+                    data1.push([this.paper.name, this.num, line.argument, line.position, line.num])
+                    data2.push([this.paper.name, this.num, line.argument])
+                    for (let i = 0; i < line.type.length; i++) {
+                        if (i == 0) {
+                            data2[data2.length - 1].push(line.type[i].p1.join(','))
+                            data2[data2.length - 1].push(line.type[i].p2)
+                        } else {
+                            if (line.type[i].p1.length == 0 && line.type[i].trim() == "") {
 
+                            } else {
+                                if (this.fill) {
+                                    data2.push([this.title, this.num, line.argument, line.type[i].p1.join(','), line.type[i].p2])
                                 } else {
-                                    if (this.fill) {
-                                        data2.push([this.title, this.num, line.argument, line.type[i].p1.join(','), line.type[i].p2])
-                                    } else {
-                                        data2.push(['', '', '', line.type[i].p1.join(','), line.type[i].p2])
-                                    }
+                                    data2.push(['', '', '', line.type[i].p1.join(','), line.type[i].p2])
                                 }
                             }
                         }
-                    })
-                    console.log(data1)
-                    console.log(data2)
-
-                    let num = this.paper.title.substring(0, this.paper.title.indexOf("."))
-
-                    let sheet1 = XLSX.utils.aoa_to_sheet(data1)
-                    let blob1 = this.sheet2blob(sheet1)
-                    this.openDownloadDialog(blob1, '论点标注' + num + '.xlsx')
-
-                    let sheet2 = XLSX.utils.aoa_to_sheet(data2)
-                    let blob2 = this.sheet2blob(sheet2)
-                    this.openDownloadDialog(blob2, '论据标注' + num + '.xlsx')
-                },
-                openDownloadDialog(url, saveName) {
-                    if (typeof url == 'object' && url instanceof Blob) {
-                        url = URL.createObjectURL(url); // 创建blob地址
                     }
-                    var aLink = document.createElement('a');
-                    aLink.href = url;
-                    aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
-                    var event;
-                    if (window.MouseEvent) event = new MouseEvent('click');
-                    else {
-                        event = document.createEvent('MouseEvents');
-                        event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-                    }
-                    aLink.dispatchEvent(event);
-                },
-                sheet2blob(sheet, sheetName) {
-                    sheetName = sheetName || 'sheet1';
-                    var workbook = {
-                        SheetNames: [sheetName],
-                        Sheets: {}
-                    };
-                    workbook.Sheets[sheetName] = sheet;
-                    // 生成excel的配置项
-                    var wopts = {
-                        bookType: 'xlsx', // 要生成的文件类型
-                        bookSST: false, // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
-                        type: 'binary'
-                    };
-                    var wbout = XLSX.write(workbook, wopts);
-                    var blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
-                    // 字符串转ArrayBuffer
-                    function s2ab(s) {
-                        var buf = new ArrayBuffer(s.length);
-                        var view = new Uint8Array(buf);
-                        for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
-                        return buf;
-                    }
-                    return blob;
-                },
-                uploaded() {
-                    this.getData(this.user._id)
-                },
-                logout() {
-                    localStorage.clear()
-                    window.location.href = "login"
-                },
-                handleInspect(_id) {
-                    window.location.href = 'inspect?_id=' + _id
-                },
-                handleEdit(_id) {
-                    window.location.href = 'tagging?_id=' + _id
-                },
-                handleDelete(_id) {
-                    let self = this
-                    const loading = this.$loading({
-                        lock: true,
-                        text: 'Delete...',
-                        spinner: 'el-icon-loading',
-                        background: 'rgba(0, 0, 0, 0.7)'
-                    });
-                    axios.delete('/api/upload?_id=' + _id)
-                        .then(function (response) {
-                            loading.close();
-                            if (response.data.code === 200) {
-                                self.$message({
-                                    message: '删除成功',
-                                    type: 'success'
-                                })
-                                self.getData(self.user._id)
-                            } else {
-                                self.$message.error(response.data.msg);
-                            }
-                        })
-                        .catch(function (error) {
-                            self.$message.error(error);
-                            loading.close();
-                        });
-                },
-                getData(_id) {
-                    let self = this
-                    const loading = this.$loading({
-                        lock: true,
-                        text: 'Get...',
-                        spinner: 'el-icon-loading',
-                        background: 'rgba(0, 0, 0, 0.7)'
-                    });
-                    axios.get('/api/upload?_id=' + _id)
-                        .then(function (response) {
-                            if (response.data.code === 200) {
-                                self.p1 = []
-                                self.p2 = []
-                                self.p3 = []
-                                self.p0 = []
-                                response.data.data.forEach(paper => {
-                                    if (paper.status == 1)
-                                        self.p1.push(paper)
-                                    if (paper.status == 2)
-                                        self.p2.push(paper)
-                                    if (paper.status == 3)
-                                        self.p3.push(paper)
-                                    if (paper.status <= 0)
-                                        self.p0.push(paper)
-                                })
-                            }
-                            else
-                                self.$message.error("网络错误");
-                            loading.close();
-                        })
-                        .catch(function (error) {
-                            self.$message.error(error);
-                            loading.close();
-                        })
-                },
+                })
+                console.log(data1)
+                console.log(data2)
+
+                let num = this.paper.title.substring(0, this.paper.title.indexOf("."))
+
+                let sheet1 = XLSX.utils.aoa_to_sheet(data1)
+                let blob1 = this.sheet2blob(sheet1)
+                this.openDownloadDialog(blob1, '论点标注' + num + '.xlsx')
+
+                let sheet2 = XLSX.utils.aoa_to_sheet(data2)
+                let blob2 = this.sheet2blob(sheet2)
+                this.openDownloadDialog(blob2, '论据标注' + num + '.xlsx')
             },
-            mounted() {
-                let auth = localStorage.getItem('auth')
-                if (auth) {
-                    let user = JSON.parse(auth)
-                    if (user.hasOwnProperty('role')) {
-                        this.user = user
-                        this.getData(user._id)
-                    } else {
-                        localStorage.clear()
-                        window.location.href = "login"
-                    }
+            openDownloadDialog(url, saveName) {
+                if (typeof url == 'object' && url instanceof Blob) {
+                    url = URL.createObjectURL(url); // 创建blob地址
+                }
+                var aLink = document.createElement('a');
+                aLink.href = url;
+                aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
+                var event;
+                if (window.MouseEvent) event = new MouseEvent('click');
+                else {
+                    event = document.createEvent('MouseEvents');
+                    event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                }
+                aLink.dispatchEvent(event);
+            },
+            sheet2blob(sheet, sheetName) {
+                sheetName = sheetName || 'sheet1';
+                var workbook = {
+                    SheetNames: [sheetName],
+                    Sheets: {}
+                };
+                workbook.Sheets[sheetName] = sheet;
+                // 生成excel的配置项
+                var wopts = {
+                    bookType: 'xlsx', // 要生成的文件类型
+                    bookSST: false, // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
+                    type: 'binary'
+                };
+                var wbout = XLSX.write(workbook, wopts);
+                var blob = new Blob([s2ab(wbout)], {type: "application/octet-stream"});
+
+                // 字符串转ArrayBuffer
+                function s2ab(s) {
+                    var buf = new ArrayBuffer(s.length);
+                    var view = new Uint8Array(buf);
+                    for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                    return buf;
+                }
+
+                return blob;
+            },
+            uploaded() {
+                this.getData(this.user._id)
+            },
+            logout() {
+                localStorage.clear()
+                window.location.href = "login"
+            },
+            handleInspect(_id) {
+                window.location.href = 'inspect?_id=' + _id
+            },
+            handleEdit(_id) {
+                window.location.href = 'tagging?_id=' + _id
+            },
+            handleDelete(_id) {
+                let self = this
+                const loading = this.$loading({
+                    lock: true,
+                    text: 'Delete...',
+                    spinner: 'el-icon-loading',
+                    background: 'rgba(0, 0, 0, 0.7)'
+                });
+                axios.delete('/api/upload?_id=' + _id)
+                    .then(function (response) {
+                        loading.close();
+                        if (response.data.code === 200) {
+                            self.$message({
+                                message: '删除成功',
+                                type: 'success'
+                            })
+                            self.getData(self.user._id)
+                        } else {
+                            self.$message.error(response.data.msg);
+                        }
+                    })
+                    .catch(function (error) {
+                        self.$message.error(error);
+                        loading.close();
+                    });
+            },
+            getData(_id) {
+                let self = this
+                const loading = this.$loading({
+                    lock: true,
+                    text: 'Get...',
+                    spinner: 'el-icon-loading',
+                    background: 'rgba(0, 0, 0, 0.7)'
+                });
+                axios.get('/api/upload?_id=' + _id)
+                    .then(function (response) {
+                        if (response.data.code === 200) {
+                            self.p1 = []
+                            self.p2 = []
+                            self.p3 = []
+                            self.p0 = []
+                            response.data.data.forEach(paper => {
+                                if (paper.status == 1)
+                                    self.p1.push(paper)
+                                if (paper.status == 2)
+                                    self.p2.push(paper)
+                                if (paper.status == 3) {
+                                    paper.select = true
+                                    self.p3.push(paper)
+                                }
+                                if (paper.status <= 0)
+                                    self.p0.push(paper)
+                            })
+                        } else
+                            self.$message.error("网络错误");
+                        loading.close();
+                    })
+                    .catch(function (error) {
+                        self.$message.error(error);
+                        loading.close();
+                    })
+            },
+        },
+        mounted() {
+            let auth = localStorage.getItem('auth')
+            if (auth) {
+                let user = JSON.parse(auth)
+                if (user.hasOwnProperty('role')) {
+                    this.user = user
+                    this.getData(user._id)
                 } else {
                     localStorage.clear()
                     window.location.href = "login"
                 }
+            } else {
+                localStorage.clear()
+                window.location.href = "login"
             }
-        })
-    </script>
+        }
+    })
+</script>
 </body>
 
 </html>
