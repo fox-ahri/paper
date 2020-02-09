@@ -9,6 +9,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
+# mongo = "mongodb://root:Aa12345.@127.0.0.1:27017/"
 mongo = "mongodb://root:Aa12345.@127.0.0.1:11001/"
 
 
@@ -116,12 +117,19 @@ def select():
         tmp = conn['paper']['paper'].find_one({'status': {'$lt': 1}, 'u1': user['username']})
         if tmp:
             tmp['_id'] = str(tmp['_id'])
-            return jsonify({
-                'code': 401,
-                'msg': '有任务未完成,请继续标注...',
-                'data': tmp
-            })
-        if conn['paper']['paper'].find_one({'_id': ObjectId(form['_id']), 'status': 1}):
+            if tmp['_id'] == form['_id']:
+                return jsonify({
+                    'code': 402,
+                    'msg': '继续标注...',
+                    'data': tmp
+                })
+            else:
+                return jsonify({
+                    'code': 401,
+                    'msg': '有任务未完成,请继续标注...',
+                    'data': tmp
+                })
+        if int(user['role']) > 1 or conn['paper']['paper'].find_one({'_id': ObjectId(form['_id']), 'status': 1}):
             conn['paper']['paper'].update_one({'_id': ObjectId(form['_id'])},
                                               {'$set': {'status': 0, 'u1': user['username']}})
             paper = conn['paper']['paper'].find_one({'_id': ObjectId(form['_id'])})
@@ -157,7 +165,7 @@ def select():
     elif form['opera'] == 'pass':
         user = conn['paper']['user'].find_one({'_id': ObjectId(form['user_id'])})
         conn['paper']['paper'].update_one({'_id': ObjectId(form['_id'])}, {
-            '$set': {'status': 3, 'u2': user['username'],
+            '$set': {'status': 3, 'u2': user['username'], 'content': form['content'], 'name': form['name'],
                      'date': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}})
         return jsonify({
             'code': 200,
@@ -167,7 +175,7 @@ def select():
     elif form['opera'] == 'redo':
         user = conn['paper']['user'].find_one({'_id': ObjectId(form['user_id'])})
         conn['paper']['paper'].update_one({'_id': ObjectId(form['_id'])}, {
-            '$set': {'status': -1, 'u2': user['username'],
+            '$set': {'status': -1, 'u2': user['username'], 'content': form['content'], 'name': form['name'],
                      'date': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}})
         return jsonify({
             'code': 200,
@@ -203,8 +211,8 @@ def upload():
         else:
             papers = conn['paper']['paper'].find({
                 '$or': [
-                    {'status': {'$lt': 2}, 'u1': ''},
-                    {'status': {'$lt': 2}, 'u1': current_user['username']}
+                    {'u1': ''},
+                    {'u1': current_user['username']}
                 ]
             })
         res = []

@@ -34,7 +34,9 @@
                 <el-button @click="back">返回</el-button>
             </div>
             <div>
-                <el-tag>编号： << paper.title >> 辩题： << paper.name >></el-tag>
+                <el-input placeholder="请输入内容" v-model="paper.name" style="width: 500px">
+                    <template slot="prepend">编号： << paper.title >> 辩题：</template>
+                </el-input>
                 <el-button @click="handler('pass')">通过</el-button>
                 <el-button @click="handler('redo')">返工</el-button>
                 <el-button @click="handleEdit">更改</el-button>
@@ -42,30 +44,51 @@
             </div>
         </div>
         <el-card class="box-card">
-            <el-table :data="content" border style="width: 100%">
-                <el-table-column prop="num" label="编号" width="80">
-                </el-table-column>
-                <el-table-column prop="text" label="文本">
-                </el-table-column>
-                <el-table-column prop="argument" label="论点" width="180">
-                </el-table-column>
-                <el-table-column prop="position" label="论点立场" width="80">
-                </el-table-column>
-                <el-table-column label="论据类型" width="180">
-                    <template slot-scope="scope">
-                        <el-card v-for="i in scope.row.type">
-                            <div>
-                                    <span v-for="j in i.p1">
-                                        << j>>
-                                    </span>
-                            </div>
-                            <div>
-                                << i.p2>>
-                            </div>
-                        </el-card>
-                    </template>
-                </el-table-column>
-            </el-table>
+        <el-table :data="content" style="width: 100%" border height="600">
+            <el-table-column label="编号" prop="num" width="60">
+            </el-table-column>
+            <el-table-column label="文本" prop="text">
+            </el-table-column>
+            <el-table-column label="论点" width="260">
+                <template slot-scope="scope">
+                    <el-input v-model="scope.row.argument" clearable>
+                    </el-input>
+                </template>
+            </el-table-column>
+            <el-table-column label="论点立场" width="200">
+                <template slot-scope="scope">
+                    <el-radio v-model="scope.row.position" label="0">0</el-radio>
+                    <el-radio v-model="scope.row.position" label="1">1</el-radio>
+                    <el-radio v-model="scope.row.position" label="">空</el-radio>
+                </template>
+            </el-table-column>
+            <el-table-column label="添加论据" width="110">
+                <template slot-scope="scope">
+                    <el-button type="primary" size="small" @click="add(scope.row.type)">添加论据</el-button>
+                </template>
+            </el-table-column>
+            <el-table-column label="论据类型" width="420">
+                <template slot-scope="scope">
+                    <el-card v-for="i in scope.row.type" style="padding: 0;">
+                        <el-checkbox-group v-model="i.p1">
+                            <el-checkbox label="专家类"></el-checkbox>
+                            <el-checkbox label="研究类"></el-checkbox>
+                            <el-checkbox label="案例类"></el-checkbox>
+                            <el-checkbox label="其他类"></el-checkbox>
+                        </el-checkbox-group>
+                        <el-row>
+                            <el-col :span="16">
+                                <el-input v-model="i.p2" clearable size="small">
+                            </el-col>
+                            <el-col :span="8">
+                                <!-- <el-button type="primary" size="small" @click="delete(scope.row.type, i)">删除
+                                </el-button type="primary"> -->
+                            </el-col>
+                        </el-row>
+                    </el-card>
+                </template>
+            </el-table-column>
+        </el-table>
         </el-card>
     </div>
 </div>
@@ -86,6 +109,13 @@
             }
         },
         methods: {
+            add(val) {
+                val.push({
+                    id: new Date(),
+                    p1: [],
+                    p2: ""
+                })
+            },
             handlerData() {
                 let data1 = [['辩题', '文章编号', '论点', '论点立场', '论点句子编号']]
                 let data2 = [['辩题', '文章编号', '论点', '论据类型', '论据句子编号']]
@@ -184,6 +214,8 @@
                 axios.post('/api/select', {
                     _id: self.paper._id,
                     user_id: self.user._id,
+                    content: self.content,
+                    name: self.paper.name,
                     opera: opera
                 })
                     .then(function (response) {

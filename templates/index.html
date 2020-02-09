@@ -29,10 +29,10 @@
             <el-button @click="logout">退出</el-button>
             <br>
             <br>
-            <el-button type="success" @click="downloadTable">下载已选择</el-button>
+            <el-button v-if="user.role > 2" type="success" @click="downloadTable">下载已选择</el-button>
         </div>
         <el-tabs type="border-card">
-            <el-tab-pane v-if="user.role > 2" label="已检验标注">
+            <el-tab-pane v-if="user.role > 2" :label="'已检验标注: ' + p3.length">
                 <el-table border
                           :data="p3.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
                           style="width: 100%">
@@ -78,7 +78,7 @@
                     </el-table-column>
                 </el-table>
             </el-tab-pane>
-            <el-tab-pane v-if="user.role > 1" label="已标注">
+            <el-tab-pane v-if="user.role > 1" :label="'已标注: ' + p2.length">
                 <el-table border
                           :data="p2.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
                           style="width: 100%">
@@ -112,7 +112,7 @@
                     </el-table-column>
                 </el-table>
             </el-tab-pane>
-            <el-tab-pane label="未标注">
+            <el-tab-pane :label="'未标注: ' + p1.length">
                 <el-upload v-if="user.role == 3" class="upload-demo" drag action="/api/upload" multiple
                            :on-success="uploaded">
                     <i class="el-icon-upload"></i>
@@ -144,7 +144,7 @@
                     </el-table-column>
                 </el-table>
             </el-tab-pane>
-            <el-tab-pane label="我的标注">
+            <el-tab-pane :label="'我的标注: ' + p0.length">
                 <el-table
                         :data="p0.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
                         style="width: 100%">
@@ -154,7 +154,8 @@
                     </el-table-column>
                     <el-table-column label="状态" width="80">
                         <template slot-scope="scope">
-                            <el-tag v-if="scope.row.status == -2" type="success">合格</el-tag>
+                            <el-tag v-if="scope.row.status == 3" type="success">合格</el-tag>
+                            <el-tag v-if="scope.row.status == 2" type="primary">已提交</el-tag>
                             <el-tag v-if="scope.row.status == 0" type="warning">未完成</el-tag>
                             <el-tag v-if="scope.row.status == -1" type="danger">返工</el-tag>
                         </template>
@@ -164,8 +165,54 @@
                             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"/>
                         </template>
                         <template slot-scope="scope">
-                            <el-button v-if="scope.row.status != -2" size="mini" @click="handleEdit(scope.row._id)">
+                            <el-button v-if="scope.row.status == -1 || scope.row.status == 0" size="mini" @click="handleEdit(scope.row._id)">
                                 标注
+                            </el-button>
+                            <el-button v-if="user.role == 3" size="mini" type="danger"
+                                       @click="handleDelete(scope.row._id)">
+                                删除
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-tab-pane>
+
+            <el-tab-pane v-if="user.role > 2" :label="'所有论文: ' + paper.length">
+                <el-table border
+                          :data="paper.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
+                          style="width: 100%">
+                    <el-table-column label="时间" prop="date">
+                    </el-table-column>
+                    <el-table-column label="辩题" prop="title">
+                    </el-table-column>
+                    <el-table-column label="状态" width="80">
+                        <template slot-scope="scope">
+                            <el-tag v-if="scope.row.status == 3" type="success">合格</el-tag>
+                            <el-tag v-if="scope.row.status == 2" type="primary">已提交</el-tag>
+                            <el-tag v-if="scope.row.status == 1" type="success">未标注</el-tag>
+                            <el-tag v-if="scope.row.status == 0" type="warning">未完成</el-tag>
+                            <el-tag v-if="scope.row.status == -1" type="danger">返工</el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="标注员">
+                        <template slot-scope="scope">
+                            << scope.row.u1>>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="检查员">
+                        <template slot-scope="scope">
+                            << scope.row.u2>>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="right" width="290">
+                        <template slot="header" slot-scope="scope">
+                            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"/>
+                        </template>
+                        <template slot-scope="scope">
+                            <el-button size="mini" @click="handleEdit(scope.row._id)">标注</el-button>
+                            <el-button size="mini" type="primary" @click="handleInspect(scope.row._id)">检查
+                            </el-button>
+                            <el-button size="mini" type="success" @click="handleDownload(scope.row.content)">下载
                             </el-button>
                             <el-button v-if="user.role == 3" size="mini" type="danger"
                                        @click="handleDelete(scope.row._id)">
@@ -191,23 +238,24 @@
                 p1: [],
                 p2: [],
                 p3: [],
+                paper: [],
                 search: ''
             }
         },
         methods: {
             downloadTable() {
                 this.p3.forEach(paper => {
-                    if(paper.select){
-                        this.handlerData(paper.content)
+                    if (paper.select) {
+                        this.handlerData(paper)
                     }
                 })
             },
-            handlerData(content) {
+            handlerData(paper) {
                 let data1 = [['辩题', '文章编号', '论点', '论点立场', '论点句子编号']]
                 let data2 = [['辩题', '文章编号', '论点', '论据类型', '论据句子编号']]
-                content.forEach(line => {
-                    data1.push([this.paper.name, this.num, line.argument, line.position, line.num])
-                    data2.push([this.paper.name, this.num, line.argument])
+                paper.content.forEach(line => {
+                    data1.push([paper.name, this.num, line.argument, line.position, line.num])
+                    data2.push([paper.name, this.num, line.argument])
                     for (let i = 0; i < line.type.length; i++) {
                         if (i == 0) {
                             data2[data2.length - 1].push(line.type[i].p1.join(','))
@@ -333,6 +381,7 @@
                             self.p2 = []
                             self.p3 = []
                             self.p0 = []
+                            self.paper = response.data.data
                             response.data.data.forEach(paper => {
                                 if (paper.status == 1)
                                     self.p1.push(paper)
@@ -342,8 +391,9 @@
                                     paper.select = true
                                     self.p3.push(paper)
                                 }
-                                if (paper.status <= 0)
+                                if (paper.u1 == self.user.username) {
                                     self.p0.push(paper)
+                                }
                             })
                         } else
                             self.$message.error("网络错误");

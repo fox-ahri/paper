@@ -29,7 +29,7 @@
                 <el-button @click="logout">退出</el-button>
                 <el-button type="primary" @click="handlerSave">保存</el-button>
                 <el-button type="primary" @click="handlerSubmit">提交</el-button>
-{#                <el-button type="primary" @click="test">测试</el-button>#}
+                {#                <el-button type="primary" @click="test">测试</el-button>#}
             </el-col>
             <el-col :span="16">
                 <el-input placeholder="请输入内容" v-model="paper.name">
@@ -100,6 +100,83 @@
             }
         },
         methods: {
+            handlerData() {
+                let data1 = [['辩题', '文章编号', '论点', '论点立场', '论点句子编号']]
+                let data2 = [['辩题', '文章编号', '论点', '论据类型', '论据句子编号']]
+                this.content.forEach(line => {
+                    data1.push([this.paper.name, this.num, line.argument, line.position, line.num])
+                    data2.push([this.paper.name, this.num, line.argument])
+                    for (let i = 0; i < line.type.length; i++) {
+                        if (i == 0) {
+                            data2[data2.length - 1].push(line.type[i].p1.join(','))
+                            data2[data2.length - 1].push(line.type[i].p2)
+                        } else {
+                            if (line.type[i].p1.length == 0 && line.type[i].trim() == "") {
+
+                            } else {
+                                if (this.fill) {
+                                    data2.push([this.title, this.num, line.argument, line.type[i].p1.join(','), line.type[i].p2])
+                                } else {
+                                    data2.push(['', '', '', line.type[i].p1.join(','), line.type[i].p2])
+                                }
+                            }
+                        }
+                    }
+                })
+                console.log(data1)
+                console.log(data2)
+
+                let num = this.paper.title.substring(0, this.paper.title.indexOf("."))
+
+                let sheet1 = XLSX.utils.aoa_to_sheet(data1)
+                let blob1 = this.sheet2blob(sheet1)
+                this.openDownloadDialog(blob1, '论点标注' + num + '.xlsx')
+
+                let sheet2 = XLSX.utils.aoa_to_sheet(data2)
+                let blob2 = this.sheet2blob(sheet2)
+                this.openDownloadDialog(blob2, '论据标注' + num + '.xlsx')
+            },
+            openDownloadDialog(url, saveName) {
+                if (typeof url == 'object' && url instanceof Blob) {
+                    url = URL.createObjectURL(url); // 创建blob地址
+                }
+                let aLink = document.createElement('a');
+                aLink.href = url;
+                aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
+                let event;
+                if (window.MouseEvent) event = new MouseEvent('click');
+                else {
+                    event = document.createEvent('MouseEvents');
+                    event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                }
+                aLink.dispatchEvent(event);
+            },
+            sheet2blob(sheet, sheetName) {
+                sheetName = sheetName || 'sheet1';
+                var workbook = {
+                    SheetNames: [sheetName],
+                    Sheets: {}
+                };
+                workbook.Sheets[sheetName] = sheet;
+                // 生成excel的配置项
+                var wopts = {
+                    bookType: 'xlsx', // 要生成的文件类型
+                    bookSST: false, // 是否生成Shared String Table，官方解释是，如果开启生成速度会下降，但在低版本IOS设备上有更好的兼容性
+                    type: 'binary'
+                };
+                var wbout = XLSX.write(workbook, wopts);
+                var blob = new Blob([s2ab(wbout)], {type: "application/octet-stream"});
+
+                // 字符串转ArrayBuffer
+                function s2ab(s) {
+                    var buf = new ArrayBuffer(s.length);
+                    var view = new Uint8Array(buf);
+                    for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                    return buf;
+                }
+
+                return blob;
+            },
             test() {
                 console.log(this.content)
             },
@@ -192,6 +269,14 @@
                             self.content = response.data.data.content
                         } else if (response.data.code === 401) {
                             self.$message.error(response.data.msg);
+                            self.paper = response.data.data
+                            console.log(response.data.data.content)
+                            self.content = response.data.data.content
+                        } else if (response.data.code === 402) {
+                            self.$message({
+                                message: response.data.msg,
+                                type: 'warning'
+                            });
                             self.paper = response.data.data
                             console.log(response.data.data.content)
                             self.content = response.data.data.content
