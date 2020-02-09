@@ -199,15 +199,15 @@ def upload():
         _id = request.args['_id']
         conn = pymongo.MongoClient(mongo)
         current_user = conn['paper']['user'].find_one({'_id': ObjectId(_id)})
-        if int(current_user['role']) > 2:
+        if int(current_user['role']) > 1:
             papers = conn['paper']['paper'].find()
-        elif int(current_user['role']) > 1:
-            papers = conn['paper']['paper'].find({
-                '$or': [
-                    {'status': {'$lt': 3}, 'u2': ''},
-                    {'status': {'$lt': 3}, 'u2': current_user['username']}
-                ]
-            })
+        # elif int(current_user['role']) > 1:
+        #     papers = conn['paper']['paper'].find({
+        #         '$or': [
+        #             {'status': {'$lt': 3}, 'u2': ''},
+        #             {'status': {'$lt': 3}, 'u2': current_user['username']}
+        #         ]
+        #     })
         else:
             papers = conn['paper']['paper'].find({
                 '$or': [
