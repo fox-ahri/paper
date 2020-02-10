@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
     <title>列表 - 论点论据标注</title>
-    <script src="https://cdn.bootcss.com/axios/0.19.0-beta.1/axios.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
     <script src="https://unpkg.com/element-ui/lib/index.js"></script>
@@ -34,6 +34,7 @@
         <el-tabs type="border-card">
             <el-tab-pane v-if="user.role > 2" :label="'已检验标注: ' + p3.length">
                 <el-table border
+                          :default-sort="{prop: 'title', order: 'descending'}"
                           :data="p3.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
                           style="width: 100%">
                     <el-table-column label="下载" width="50">
@@ -43,7 +44,11 @@
                     </el-table-column>
                     <el-table-column label="时间" prop="date">
                     </el-table-column>
-                    <el-table-column label="辩题" prop="title">
+                    <el-table-column label="辩题" sortable prop="title">
+                        <template slot-scope="scope">
+                            << scope.row.title >>
+                        </template>
+                    </el-table-column>
                     </el-table-column>
                     <el-table-column label="状态" width="80">
                         <template slot-scope="scope">
@@ -80,11 +85,12 @@
             </el-tab-pane>
             <el-tab-pane v-if="user.role > 1" :label="'已标注: ' + p2.length">
                 <el-table border
+                          :default-sort="{prop: 'title', order: 'descending'}"
                           :data="p2.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
                           style="width: 100%">
                     <el-table-column label="时间" prop="date">
                     </el-table-column>
-                    <el-table-column label="辩题" prop="title">
+                    <el-table-column label="辩题" sortable prop="title">
                     </el-table-column>
                     <el-table-column label="状态" width="80">
                         <template slot-scope="scope">
@@ -119,11 +125,12 @@
                     <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
                 </el-upload>
                 <el-table border
+                          :default-sort="{prop: 'title', order: 'descending'}"
                           :data="p1.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
                           style="width: 100%">
                     <el-table-column label="时间" prop="date">
                     </el-table-column>
-                    <el-table-column label="辩题" prop="title">
+                    <el-table-column label="辩题" sortable prop="title">
                     </el-table-column>
                     <el-table-column label="状态" width="80">
                         <template slot-scope="scope">
@@ -165,7 +172,8 @@
                             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"/>
                         </template>
                         <template slot-scope="scope">
-                            <el-button v-if="scope.row.status == -1 || scope.row.status == 0" size="mini" @click="handleEdit(scope.row._id)">
+                            <el-button v-if="scope.row.status == -1 || scope.row.status == 0" size="mini"
+                                       @click="handleEdit(scope.row._id)">
                                 标注
                             </el-button>
                             <el-button v-if="user.role == 3" size="mini" type="danger"
@@ -179,11 +187,12 @@
 
             <el-tab-pane v-if="user.role > 2" :label="'所有论文: ' + paper.length">
                 <el-table border
+                          :default-sort="{prop: 'title', order: 'descending'}"
                           :data="paper.filter(data => !search || data.title.toLowerCase().includes(search.toLowerCase()))"
                           style="width: 100%">
                     <el-table-column label="时间" prop="date">
                     </el-table-column>
-                    <el-table-column label="辩题" prop="title">
+                    <el-table-column label="辩题" sortable prop="title">
                     </el-table-column>
                     <el-table-column label="状态" width="80">
                         <template slot-scope="scope">
