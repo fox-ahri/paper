@@ -227,6 +227,9 @@ def upload():
     elif request.method == 'POST':
         f = request.files.get('file')
         name = f.filename
+        conn = pymongo.MongoClient(mongo)
+        if conn['paper']['paper'].find_one({'title': name}):
+            return jsonify({'code': 400, 'msg': name})
         s = f.read()
         content = s.decode('utf8').split('\n')
         result = []
@@ -240,7 +243,6 @@ def upload():
                 'type': []
             }
             result.append(tmp)
-        conn = pymongo.MongoClient(mongo)
         conn['paper']['paper'].insert_one({
             'date': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
             'title': name,

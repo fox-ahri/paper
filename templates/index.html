@@ -336,7 +336,14 @@
 
                 return blob;
             },
-            uploaded() {
+            uploaded(p) {
+                if (p.code === 400) {
+                    this.$notify.error({
+                        title: '错误',
+                        message: '文件 ' + p.msg + ' 重复',
+                        duration: 0
+                    });
+                }
                 this.getData(this.user._id)
             },
             logout() {
