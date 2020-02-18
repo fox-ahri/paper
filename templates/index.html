@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
     <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://cdn.bootcss.com/xlsx/0.15.1/xlsx.core.min.js"></script>
     <style>
         .list {
             width: 1200px;
@@ -326,7 +327,7 @@
                 console.log(data1)
                 console.log(data2)
 
-                let num = this.paper.title.substring(0, this.paper.title.indexOf("."))
+                let num = paper.title.substring(0, paper.title.indexOf("."))
 
                 let sheet1 = XLSX.utils.aoa_to_sheet(data1)
                 let blob1 = this.sheet2blob(sheet1)
