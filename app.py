@@ -9,8 +9,8 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
-mongo = "mongodb://root:Aa12345.@127.0.0.1:27017/"
-# mongo = "mongodb://root:Aa12345.@127.0.0.1:11001/"
+# mongo = "mongodb://root:Aa12345.@127.0.0.1:27017/"
+mongo = "mongodb://root:Aa12345.@127.0.0.1:11001/"
 
 
 @app.route('/')

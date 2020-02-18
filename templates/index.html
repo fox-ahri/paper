@@ -74,7 +74,7 @@
                             <el-button size="mini" @click="handleEdit(scope.row._id)">标注</el-button>
                             <el-button size="mini" type="primary" @click="handleInspect(scope.row._id)">检查
                             </el-button>
-                            <el-button size="mini" type="success" @click="handleDownload(scope.row.content)">下载
+                            <el-button size="mini" type="success" @click="handlerData(scope.row)">下载
                             </el-button>
                             <el-button v-if="user.role == 3" size="mini" type="danger"
                                        @click="handleDelete(scope.row._id)">
@@ -293,11 +293,15 @@
                 })
             },
             downloadTable() {
-                this.p3.forEach(paper => {
-                    if (paper.select) {
-                        this.handlerData(paper)
+                let i = 0
+                let timer = setInterval(() => {
+                    if (i + 1 < this.p3.length){
+                        this.handlerData(this.p3[i])
+                        i++
+                    }else{
+                        clearInterval(timer)
                     }
-                })
+                }, 300)
             },
             handlerData(paper) {
                 let data1 = [['辩题', '文章编号', '论点', '论点立场', '论点句子编号']]
