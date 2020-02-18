@@ -310,13 +310,11 @@
                     if (line.argument.trim() !== "" && line.position !== "") {
                         data1.push([paper.name, this.num, line.argument, line.position, line.num])
                         data2.push([paper.name, this.num, line.argument])
-                        for (let i = 0; i < line.type.length; i++) {
-                            if (i == 0) {
-                                data2[data2.length - 1].push(line.type[i].p1.join(','))
-                                data2[data2.length - 1].push(line.type[i].p2)
-                            } else {
-                                if (line.type[i].p1.length == 0 && line.type[i].trim() == "") {
-
+                        if(line.argument != ""){
+                            for (let i = 0; i < line.type.length; i++) {
+                                if (i == 0) {
+                                    data2[data2.length - 1].push(line.type[i].p1.join(','))
+                                    data2[data2.length - 1].push(line.type[i].p2)
                                 } else {
                                     if (this.fill) {
                                         data2.push([this.title, this.num, line.argument, line.type[i].p1.join(','), line.type[i].p2])
