@@ -306,10 +306,13 @@
             handlerData(paper) {
                 let data1 = [['辩题', '文章编号', '论点', '论点立场', '论点句子编号']]
                 let data2 = [['辩题', '文章编号', '论点', '论据类型', '论据句子编号']]
+
+                let num = paper.title.substring(0, paper.title.indexOf("."))
+
                 paper.content.forEach(line => {
                     if (line.argument.trim() !== "" && line.position !== "") {
-                        data1.push([paper.name, this.num, line.argument, line.position, line.num])
-                        data2.push([paper.name, this.num, line.argument])
+                        data1.push([paper.name, num, line.argument, line.position, line.num])
+                        data2.push([paper.name, num, line.argument])
                         if(line.argument != ""){
                             for (let i = 0; i < line.type.length; i++) {
                                 if (i == 0) {
@@ -317,7 +320,7 @@
                                     data2[data2.length - 1].push(line.type[i].p2)
                                 } else {
                                     if (this.fill) {
-                                        data2.push([this.title, this.num, line.argument, line.type[i].p1.join(','), line.type[i].p2])
+                                        data2.push([paper.name, num, line.argument, line.type[i].p1.join(','), line.type[i].p2])
                                     } else {
                                         data2.push(['', '', '', line.type[i].p1.join(','), line.type[i].p2])
                                     }
@@ -328,8 +331,6 @@
                 })
                 console.log(data1)
                 console.log(data2)
-
-                let num = paper.title.substring(0, paper.title.indexOf("."))
 
                 let sheet1 = XLSX.utils.aoa_to_sheet(data1)
                 let blob1 = this.sheet2blob(sheet1)
